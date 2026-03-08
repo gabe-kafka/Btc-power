@@ -1,7 +1,7 @@
 ---
 title: Bitcoin Power Curve
 emoji: ⚡
-colorFrom: orange
+colorFrom: yellow
 colorTo: yellow
 sdk: gradio
 sdk_version: "5.50.0"

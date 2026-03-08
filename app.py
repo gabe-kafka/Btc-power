@@ -66,24 +66,46 @@ def gauge_price_labels(dt: datetime):
     return pairs
 
 
-# ── CoinGecko data fetch ─────────────────────────────────────────────────────
-def fetch_coingecko_history(days: int = 5000):
+# ── Data loading: bundled CSV + CoinGecko for recent updates ─────────────────
+import os
+
+CSV_PATH = os.path.join(os.path.dirname(__file__), "btc_historical.csv")
+
+
+def load_historical_csv():
+    """Load the bundled historical CSV."""
+    df = pd.read_csv(CSV_PATH, parse_dates=["date"])
+    return df
+
+
+def fetch_recent_coingecko(days: int = 30):
+    """Fetch only recent data from CoinGecko free API (no key needed, max 365 days)."""
     url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart"
     params = {"vs_currency": "usd", "days": str(days), "interval": "daily"}
-    for attempt in range(4):
-        try:
-            r = requests.get(url, params=params, timeout=20)
-            if r.status_code == 200:
-                data = r.json()["prices"]
-                df = pd.DataFrame(data, columns=["ts", "price"])
-                df["date"] = pd.to_datetime(df["ts"], unit="ms")
-                df = df[["date", "price"]].drop_duplicates("date")
-                df = df[df["date"] >= pd.Timestamp("2010-07-17")]
-                return df
-            time.sleep(2 ** attempt)
-        except Exception:
-            time.sleep(2 ** attempt)
+    try:
+        r = requests.get(url, params=params, timeout=15)
+        if r.status_code == 200:
+            data = r.json()["prices"]
+            df = pd.DataFrame(data, columns=["ts", "price"])
+            df["date"] = pd.to_datetime(df["ts"], unit="ms").dt.normalize()
+            df = df[["date", "price"]].drop_duplicates("date")
+            return df
+    except Exception:
+        pass
     return None
+
+
+def get_full_price_history():
+    """Load bundled CSV and merge with recent CoinGecko data."""
+    df = load_historical_csv()
+
+    # Try to fill in recent days from CoinGecko
+    recent = fetch_recent_coingecko(days=30)
+    if recent is not None and not recent.empty:
+        df = pd.concat([df, recent], ignore_index=True)
+        df = df.drop_duplicates("date", keep="last").sort_values("date").reset_index(drop=True)
+
+    return df
 
 
 def fetch_current_price():
@@ -261,9 +283,9 @@ def build_chart():
     if current_price is None:
         current_price = 66_648  # fallback from image
 
-    df = fetch_coingecko_history(days=5500)
+    df = get_full_price_history()
     if df is None or df.empty:
-        return None, "Failed to fetch historical data from CoinGecko."
+        return None, "Failed to load historical data."
 
     ya_now = years_ahead(current_price, now)
     score_now = fg_score(ya_now)
@@ -298,7 +320,7 @@ def build_chart():
         f"**Current BTC Price:** ${current_price:,.0f}  |  "
         f"**F&G Score:** {score_now:.0f}  |  "
         f"**Years Ahead:** {ya_now:.2f}  |  "
-        f"*Data: CoinGecko — updated {now.strftime('%Y-%m-%d %H:%M UTC')}*"
+        f"*Data: bundled CSV + CoinGecko — updated {now.strftime('%Y-%m-%d %H:%M UTC')}*"
     )
     return fig, status
 

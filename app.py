@@ -22,42 +22,42 @@ B = 5.84
 CSV_PATH = os.path.join(os.path.dirname(__file__), "btc_historical.csv")
 CACHE_TTL_SECONDS = 900
 
-BG = "#07131c"
-PANEL = "#0e2231"
-INK = "#f5efe3"
-MUTED = "#9db2c3"
-GRID = "#204056"
+BG = "#0A0A0A"
+PANEL = "#141414"
+INK = "#E5E5E5"
+MUTED = "#808080"
+GRID = "#2A2A2A"
 
 ZONE_META = [
     {
         "label": "Freezing",
         "summary": "BTC is trading in a cold, fear-heavy zone versus its long-run curve.",
         "detail": "Historically this has been a washed-out part of the cycle where price is subdued relative to trend.",
-        "color": "#6ec5ff",
+        "color": "#3B82F6",
     },
     {
         "label": "Cold",
         "summary": "BTC is below its usual cycle heat and still relatively calm.",
         "detail": "This is cooler than average for Bitcoin history, but not a deep capitulation zone.",
-        "color": "#42a4d9",
+        "color": "#60A5FA",
     },
     {
         "label": "Balanced",
         "summary": "BTC is near the middle of its historical temperature range.",
         "detail": "The market is neither especially hot nor especially cold relative to the power curve.",
-        "color": "#f0c36c",
+        "color": "#A3A3A3",
     },
     {
         "label": "Warm",
         "summary": "BTC is trading above trend and sentiment is heating up.",
         "detail": "This zone often appears when momentum is strong but the market is not yet at full euphoria.",
-        "color": "#ef8d49",
+        "color": "#D97706",
     },
     {
         "label": "Overheated",
         "summary": "BTC is running very hot versus its historical power-curve position.",
         "detail": "This is where greed and speculative excess are most likely to dominate.",
-        "color": "#ff5d4d",
+        "color": "#DC2626",
     },
 ]
 
@@ -72,27 +72,42 @@ STATIC_EXPLAINER = """
 - This is a market-temperature tool. It is not the CNN Fear & Greed index and it does not use social sentiment.
 """
 
+matplotlib.rcParams.update(
+    {
+        "font.family": ["DejaVu Sans Mono", "monospace"],
+        "font.size": 9,
+        "axes.edgecolor": GRID,
+        "axes.labelcolor": MUTED,
+        "axes.titlecolor": INK,
+        "xtick.color": MUTED,
+        "ytick.color": MUTED,
+    }
+)
+
 CSS = """
 :root {
-  --bg: #07131c;
-  --panel: rgba(14, 34, 49, 0.86);
-  --panel-strong: rgba(8, 20, 29, 0.94);
-  --line: rgba(121, 164, 191, 0.22);
-  --ink: #f5efe3;
-  --muted: #9db2c3;
+  --bg: #0a0a0a;
+  --panel: #141414;
+  --panel-strong: #101010;
+  --line: #2a2a2a;
+  --ink: #e5e5e5;
+  --muted: #808080;
+  --accent: #3b82f6;
+  --sans: "Neue Haas Grotesk Text Pro", "Univers", "Akzidenz-Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "Berkeley Mono", "JetBrains Mono", "IBM Plex Mono", "Courier Prime", monospace;
 }
 
 body {
-  background:
-    radial-gradient(circle at top left, rgba(110, 197, 255, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(255, 93, 77, 0.14), transparent 25%),
-    linear-gradient(180deg, #07131c 0%, #081723 100%);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
 }
 
 .gradio-container {
-  background: transparent !important;
+  background: var(--bg) !important;
   color: var(--ink) !important;
-  max-width: 1220px !important;
+  max-width: 1440px !important;
+  padding: 16px !important;
 }
 
 footer {
@@ -100,140 +115,209 @@ footer {
 }
 
 .app-shell {
-  margin: 16px 0 8px;
+  margin: 0 0 16px;
 }
 
 .hero-card,
 .narrative-card {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 26px;
-  padding: 24px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(16px);
+  border-radius: 0;
+  padding: 16px;
+  box-shadow: none;
 }
 
 .hero-top {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  align-items: flex-start;
+  align-items: baseline;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
 }
 
 .eyebrow {
-  color: #8ec7ea;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.18em;
+  font-family: var(--mono);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .hero-title {
-  font-size: clamp(34px, 5vw, 54px);
-  line-height: 0.98;
+  font-size: 24px;
+  line-height: 1.125;
   font-weight: 700;
-  max-width: 760px;
+  font-family: var(--mono);
   margin: 0;
 }
 
 .hero-copy {
   color: var(--muted);
-  font-size: 16px;
-  line-height: 1.55;
-  max-width: 760px;
-  margin: 14px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  max-width: 880px;
+  margin: 8px 0 0;
 }
 
 .stamp {
   border: 1px solid var(--line);
   background: var(--panel-strong);
   color: var(--ink);
-  border-radius: 999px;
-  padding: 10px 14px;
+  border-radius: 0;
+  padding: 8px 12px;
   white-space: nowrap;
   font-size: 12px;
+  font-family: var(--mono);
 }
 
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 22px;
+  gap: 0;
+  margin-top: 16px;
+  border: 1px solid var(--line);
 }
 
 .metric {
-  background: rgba(5, 14, 21, 0.62);
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  background: transparent;
+  border-right: 1px solid var(--line);
   padding: 16px;
+}
+
+.metric:last-child {
+  border-right: 0;
 }
 
 .metric-label {
   color: var(--muted);
   font-size: 12px;
+  font-family: var(--mono);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
 .metric-value {
   color: var(--ink);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 700;
-  margin-top: 10px;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  margin-top: 8px;
 }
 
 .metric-note {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
   margin-top: 8px;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 
 .narrative-kicker {
-  color: #8ec7ea;
+  color: var(--muted);
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  font-family: var(--mono);
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .narrative-title {
-  font-size: 30px;
-  line-height: 1.04;
-  margin: 10px 0 14px;
+  font-size: 20px;
+  line-height: 1.2;
+  margin: 8px 0 16px;
+  font-family: var(--mono);
 }
 
 .narrative-copy {
   color: var(--muted);
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 16px;
 }
 
 .signal-list {
   display: grid;
-  gap: 12px;
+  gap: 0;
+  border: 1px solid var(--line);
 }
 
 .signal-item {
   display: grid;
-  gap: 4px;
+  grid-template-columns: 184px 1fr;
+  gap: 16px;
+  padding: 8px 12px;
   border-top: 1px solid var(--line);
-  padding-top: 12px;
+}
+
+.signal-item:first-child {
+  border-top: 0;
 }
 
 .signal-label {
   color: var(--muted);
   font-size: 12px;
+  font-family: var(--mono);
   text-transform: uppercase;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
 }
 
 .signal-value {
   color: var(--ink);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+button.primary,
+button.secondary {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: var(--mono) !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.gr-button-primary {
+  background: #1a1a1a !important;
+  border: 1px solid var(--accent) !important;
+  color: var(--ink) !important;
+}
+
+.gr-button-primary:hover {
+  background: #111111 !important;
+}
+
+.prose,
+.prose * {
+  font-family: var(--sans) !important;
+}
+
+.prose p,
+.prose li {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.prose h3,
+.prose code,
+.prose pre,
+.prose table,
+.prose th,
+.prose td {
+  font-family: var(--mono) !important;
+}
+
+.prose code {
+  background: transparent !important;
+  color: var(--ink) !important;
+  border: 1px solid var(--line);
+  border-radius: 0 !important;
+  padding: 1px 4px;
 }
 
 @media (max-width: 980px) {
@@ -243,12 +327,23 @@ footer {
 
   .metric-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-bottom: 0;
+  }
+
+  .metric {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
   }
 }
 
 @media (max-width: 640px) {
   .metric-grid {
     grid-template-columns: 1fr;
+  }
+
+  .signal-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
 """
@@ -432,7 +527,10 @@ def relative_sentence(score: float) -> str:
 
 def build_hero_html(snapshot: Snapshot) -> str:
     zone = snapshot.zone
-    headline = f"BTC is <span style='color:{zone['color']}'>{zone['label']}</span> versus its power curve."
+    headline = (
+        f"STATUS: <span style='color:{zone['color']}'>{zone['label'].upper()}</span> "
+        f" | HEAT {snapshot.heat_score:.0f}/100 | GAP {format_gap(snapshot.gap_pct)}"
+    )
     return f"""
     <div class="app-shell">
       <div class="hero-card">
@@ -442,8 +540,9 @@ def build_hero_html(snapshot: Snapshot) -> str:
             <h1 class="hero-title">{headline}</h1>
             <p class="hero-copy">{zone['summary']} {relative_sentence(snapshot.heat_score)} {zone['detail']}</p>
             <p class="hero-copy">
-              Model fair value today: <strong>{format_dollar(snapshot.curve_price)}</strong>.
-              One year out on the same power curve: <strong>{format_dollar(snapshot.curve_price_1y)}</strong>.
+              Model fair value is the power-curve value for the current date, not intrinsic value.
+              Today the model value is <strong>{format_dollar(snapshot.curve_price)}</strong>.
+              One year out on the same curve it is <strong>{format_dollar(snapshot.curve_price_1y)}</strong>.
             </p>
           </div>
           <div class="stamp">Updated {snapshot.as_of.strftime("%b %d, %Y %H:%M UTC")}</div>
@@ -484,24 +583,27 @@ def build_narrative_html(snapshot: Snapshot) -> str:
     premium_text = "above" if snapshot.gap_pct >= 0 else "below"
     return f"""
     <div class="narrative-card">
-      <div class="narrative-kicker">What This Means</div>
-      <div class="narrative-title">A simple answer for visitors: is the market hot or cold?</div>
+      <div class="narrative-kicker">Interpretation</div>
+      <div class="narrative-title">Market Readout</div>
       <p class="narrative-copy">
-        Bitcoin is currently trading {abs(snapshot.gap_pct):.1f}% {premium_text} the model curve.
-        That places the market in the <span style="color:{snapshot.zone['color']}; font-weight:700;">{snapshot.zone['label']}</span> zone
-        and makes today's reading {relative_sentence(snapshot.heat_score).lower()}
+        Bitcoin is trading {abs(snapshot.gap_pct):.1f}% {premium_text} the model curve.
+        The current reading is <span style="color:{snapshot.zone['color']}; font-weight:700;">{snapshot.zone['label'].upper()}</span>.
       </p>
       <div class="signal-list">
         <div class="signal-item">
-          <div class="signal-label">For normal users</div>
+          <div class="signal-label">Summary</div>
           <div class="signal-value">{snapshot.zone['summary']}</div>
         </div>
         <div class="signal-item">
-          <div class="signal-label">Model read</div>
-          <div class="signal-value">{snapshot.years_ahead_value:.2f} years ahead of the curve</div>
+          <div class="signal-label">Historical Position</div>
+          <div class="signal-value">{relative_sentence(snapshot.heat_score)} {snapshot.years_ahead_value:.2f} years ahead of the curve.</div>
         </div>
         <div class="signal-item">
-          <div class="signal-label">Data source</div>
+          <div class="signal-label">Fair Value Assumption</div>
+          <div class="signal-value">The site treats the power-curve price as model fair value: {format_dollar(snapshot.curve_price)} today and {format_dollar(snapshot.curve_price_1y)} one year out.</div>
+        </div>
+        <div class="signal-item">
+          <div class="signal-label">Data Source</div>
           <div class="signal-value">{snapshot.source_note}</div>
         </div>
       </div>
@@ -616,7 +718,7 @@ def build_market_chart(snapshot: Snapshot):
         textcoords="offset points",
         color=INK,
         fontsize=9,
-        bbox=dict(boxstyle="round,pad=0.5", facecolor=BG, edgecolor=GRID, alpha=0.9),
+        bbox=dict(boxstyle="square,pad=0.45", facecolor=BG, edgecolor=GRID, alpha=1.0),
         arrowprops=dict(arrowstyle="-", color=GRID),
     )
 
@@ -668,7 +770,7 @@ def create_demo() -> gr.Blocks:
             narrative = gr.HTML()
 
         with gr.Row():
-            refresh_btn = gr.Button("Refresh market data", variant="primary")
+            refresh_btn = gr.Button("Refresh Data", variant="primary")
 
         market_chart = gr.Plot(show_label=False, container=True)
         explainer = gr.Markdown()

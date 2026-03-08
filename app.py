@@ -259,6 +259,7 @@ class Snapshot:
     as_of: datetime
     current_price: float
     curve_price: float
+    curve_price_1y: float
     gap_pct: float
     curve_multiple: float
     years_ahead_value: float
@@ -383,6 +384,7 @@ def build_snapshot(force: bool = False) -> Snapshot:
     )
 
     curve_price = float(power_law_price(now))
+    curve_price_1y = float(power_law_price(now + timedelta(days=365)))
     years_ahead_value = float(years_ahead(current_price, now))
     heat_score = heat_score_from_distribution(sorted_years_ahead, years_ahead_value)
     curve_multiple = current_price / curve_price
@@ -392,6 +394,7 @@ def build_snapshot(force: bool = False) -> Snapshot:
         as_of=now,
         current_price=current_price,
         curve_price=curve_price,
+        curve_price_1y=curve_price_1y,
         gap_pct=gap_pct,
         curve_multiple=curve_multiple,
         years_ahead_value=years_ahead_value,
@@ -438,6 +441,10 @@ def build_hero_html(snapshot: Snapshot) -> str:
           <div>
             <h1 class="hero-title">{headline}</h1>
             <p class="hero-copy">{zone['summary']} {relative_sentence(snapshot.heat_score)} {zone['detail']}</p>
+            <p class="hero-copy">
+              Model fair value today: <strong>{format_dollar(snapshot.curve_price)}</strong>.
+              One year out on the same power curve: <strong>{format_dollar(snapshot.curve_price_1y)}</strong>.
+            </p>
           </div>
           <div class="stamp">Updated {snapshot.as_of.strftime("%b %d, %Y %H:%M UTC")}</div>
         </div>
@@ -448,9 +455,9 @@ def build_hero_html(snapshot: Snapshot) -> str:
             <div class="metric-note">Live BTC/USD when available.</div>
           </div>
           <div class="metric">
-            <div class="metric-label">Curve Value</div>
+            <div class="metric-label">Model Fair Value</div>
             <div class="metric-value">{format_dollar(snapshot.curve_price)}</div>
-            <div class="metric-note">Model price on the long-run power curve.</div>
+            <div class="metric-note">Power-curve value for today, not intrinsic value.</div>
           </div>
           <div class="metric">
             <div class="metric-label">Premium / Discount</div>

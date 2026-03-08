@@ -1,5 +1,5 @@
 ---
-title: React
+title: Btc Power
 emoji: 🐠
 colorFrom: indigo
 colorTo: red
@@ -7,6 +7,8 @@ sdk: static
 pinned: false
 app_build_command: npm run build
 app_file: build/index.html
+license: mit
+short_description: 'Bitcoin power curve w fear and greed '
 ---
 
 # Getting Started with Create React App

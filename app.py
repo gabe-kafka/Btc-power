@@ -10,10 +10,11 @@ import matplotlib
 import numpy as np
 import pandas as pd
 import requests
-from matplotlib import pyplot as plt
-from matplotlib.patches import Wedge
 
 matplotlib.use("Agg")
+
+from matplotlib import pyplot as plt
+from matplotlib.patches import Wedge
 
 
 GENESIS = datetime(2009, 1, 3)

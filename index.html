@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BTC Power Curve Temperature</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="sheet">
+        <div class="sheet-header">
+          <div>
+            <div class="kicker">BTC POWER CURVE TEMPERATURE</div>
+            <h1 id="status-line">Loading...</h1>
+          </div>
+          <div class="stamp" id="stamp">Connecting</div>
+        </div>
+        <p class="lede" id="lede">
+          Loading market snapshot.
+        </p>
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>METRIC</th>
+              <th>VALUE</th>
+              <th>NOTE</th>
+            </tr>
+          </thead>
+          <tbody id="metrics-body"></tbody>
+        </table>
+      </section>
+
+      <section class="sheet controls">
+        <button id="refresh-button" type="button">REFRESH DATA</button>
+        <span class="hint">Static frontend + Python API. No Gradio.</span>
+      </section>
+
+      <section class="grid">
+        <section class="sheet">
+          <div class="section-head">
+            <div class="kicker">GAUGE</div>
+            <div class="mini-note">Historical percentile</div>
+          </div>
+          <svg id="gauge" viewBox="0 0 480 300" aria-label="Heat score gauge"></svg>
+        </section>
+
+        <section class="sheet">
+          <div class="section-head">
+            <div class="kicker">READOUT</div>
+            <div class="mini-note">Model interpretation</div>
+          </div>
+          <table class="detail-table">
+            <tbody id="detail-body"></tbody>
+          </table>
+        </section>
+      </section>
+
+      <section class="sheet">
+        <div class="section-head">
+          <div class="kicker">FIG-01</div>
+          <div class="mini-note">BTC price vs power curve</div>
+        </div>
+        <svg id="price-chart" viewBox="0 0 1200 440" aria-label="BTC price against power curve"></svg>
+      </section>
+
+      <section class="sheet">
+        <div class="section-head">
+          <div class="kicker">FIG-02</div>
+          <div class="mini-note">Historical market temperature</div>
+        </div>
+        <svg id="score-chart" viewBox="0 0 1200 320" aria-label="Historical heat score"></svg>
+      </section>
+
+      <section class="sheet">
+        <div class="section-head">
+          <div class="kicker">NOTES</div>
+          <div class="mini-note">Model assumptions</div>
+        </div>
+        <table class="detail-table">
+          <tbody>
+            <tr>
+              <th>FAIR VALUE</th>
+              <td>Power-curve price for the current date. Not intrinsic value.</td>
+            </tr>
+            <tr>
+              <th>HEAT SCORE</th>
+              <td>Percentile of BTC's historical deviation from the curve. 0 is coldest, 100 is hottest.</td>
+            </tr>
+            <tr>
+              <th>ONE YEAR OUT</th>
+              <td id="one-year-note">Loading.</td>
+            </tr>
+            <tr>
+              <th>DATA</th>
+              <td id="data-note">Loading.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </main>
+
+    <script src="/main.js" defer></script>
+  </body>
+</html>

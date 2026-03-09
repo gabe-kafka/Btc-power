@@ -1,35 +1,32 @@
----
-title: Bitcoin Power Curve
-emoji: ⚡
-colorFrom: yellow
-colorTo: yellow
-sdk: gradio
-python_version: "3.10"
-sdk_version: "5.50.0"
-app_file: app.py
-pinned: false
----
-
 # BTC Power Curve Temperature
 
-A Gradio site that explains where Bitcoin sits relative to its long-run power curve and translates that into a simple market temperature:
+Vercel-ready Bitcoin market temperature site.
 
-- `Freezing` and `Cold` when BTC is trading in historically washed-out territory.
-- `Balanced` when BTC is near the middle of its historical power-curve range.
-- `Warm` and `Overheated` when BTC is materially above trend and greed is rising.
+The site does two things:
 
-The dashboard combines:
+- serves a static frontend from `index.html`, `styles.css`, and `main.js`
+- serves live market/model data from the Python serverless endpoint at `/api/snapshot`
 
-- live BTC/USD spot pricing when available
-- a long-run power curve model
-- a percentile-based Heat Score from Bitcoin's full historical deviation versus the curve
-- plain-English copy so visitors can immediately understand whether the market looks hot or cold
+## Model
 
-## Run locally
+- `fair value` means the power-curve value for the current date
+- `heat score` is the percentile of Bitcoin's historical deviation from that curve
+- `one year out` means following the same power curve forward by 365 days
 
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -r requirements.txt
-python app.py
-```
+## Deploy On Vercel
+
+1. Import this repo into Vercel.
+2. Framework preset: `Other`.
+3. Root directory: repo root.
+4. Deploy.
+
+Vercel will:
+
+- serve the static frontend files directly
+- run `api/snapshot.py` as a Python serverless function
+
+## Local Notes
+
+- The frontend is plain HTML/CSS/JS.
+- The API logic lives in [powercurve_core.py](/Users/gabe/projects/btc-power/powercurve_core.py).
+- Historical data is bundled in [btc_historical.csv](/Users/gabe/projects/btc-power/btc_historical.csv).

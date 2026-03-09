@@ -7,10 +7,11 @@ const zoneBands = [
 ];
 
 const dom = {
-  statusLine: document.getElementById("status-line"),
+  statusChip: document.getElementById("status-chip"),
+  statusText: document.getElementById("status-text"),
   stamp: document.getElementById("stamp"),
-  lede: document.getElementById("lede"),
-  metricsBody: document.getElementById("metrics-body"),
+  sourceLine: document.getElementById("source-line"),
+  kpiStrip: document.getElementById("kpi-strip"),
   detailBody: document.getElementById("detail-body"),
   gauge: document.getElementById("gauge"),
   priceChart: document.getElementById("price-chart"),
@@ -65,6 +66,29 @@ function setTableRows(tbody, rows) {
     .join("");
 }
 
+function renderKpis(snapshot) {
+  const kpis = [
+    ["SPOT", formatDollar(snapshot.current_price), "BTC / USD"],
+    ["MODEL VALUE", formatDollar(snapshot.curve_price), "POWER CURVE NOW"],
+    ["CURVE +1Y", formatDollar(snapshot.curve_price_1y), "365D FORWARD"],
+    ["GAP", formatGap(snapshot.gap_pct), "VS MODEL"],
+    ["YEARS AHEAD", snapshot.years_ahead_value.toFixed(2), "CURVE OFFSET"],
+    ["HEAT", `${Math.round(snapshot.heat_score)}/100`, snapshot.zone.label.toUpperCase()],
+  ];
+
+  dom.kpiStrip.innerHTML = kpis
+    .map(
+      ([label, value, sub]) => `
+        <div class="kpi">
+          <div class="kpi-label">${label}</div>
+          <div class="kpi-value">${value}</div>
+          <div class="kpi-sub">${sub}</div>
+        </div>
+      `
+    )
+    .join("");
+}
+
 function createSvgNode(tag, attrs = {}) {
   const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
   Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
@@ -103,70 +127,80 @@ function gaugeArcPath(cx, cy, radius, startScore, endScore) {
 function renderGauge(snapshot) {
   const svg = dom.gauge;
   svg.innerHTML = "";
-  const width = 480;
-  const height = 300;
-  const cx = 240;
-  const cy = 250;
-  const radius = 156;
+  const width = 640;
+  const trackX = 120;
+  const trackY = 54;
+  const trackWidth = 420;
+  const trackHeight = 12;
+  const markerX = trackX + (snapshot.heat_score / 100) * trackWidth;
+
+  const label = createSvgNode("text", {
+    x: 12,
+    y: 58,
+    fill: "#808080",
+    "font-family": "monospace",
+    "font-size": 10,
+  });
+  label.textContent = "HEAT";
+  svg.appendChild(label);
+
+  const value = createSvgNode("text", {
+    x: width - 12,
+    y: 58,
+    "text-anchor": "end",
+    fill: snapshot.zone.color,
+    "font-family": "monospace",
+    "font-size": 18,
+    "font-weight": "700",
+  });
+  value.textContent = `${Math.round(snapshot.heat_score)}/100`;
+  svg.appendChild(value);
 
   zoneBands.forEach((band) => {
+    const x = trackX + (band.start / 100) * trackWidth;
+    const widthPx = ((band.end - band.start) / 100) * trackWidth;
     svg.appendChild(
-      createSvgNode("path", {
-        d: gaugeArcPath(cx, cy, radius, band.start, band.end),
-        stroke: band.color,
-        "stroke-width": 30,
-        fill: "none",
+      createSvgNode("rect", {
+        x,
+        y: trackY,
+        width: widthPx,
+        height: trackHeight,
+        fill: band.color,
       })
     );
   });
 
+  svg.appendChild(
+    createSvgNode("line", {
+      x1: markerX,
+      y1: trackY - 6,
+      x2: markerX,
+      y2: trackY + trackHeight + 6,
+      stroke: "#E5E5E5",
+      "stroke-width": 2,
+    })
+  );
+
   [0, 20, 40, 60, 80, 100].forEach((tick) => {
-    const point = gaugePoint(cx, cy, radius + 28, tick);
+    const x = trackX + (tick / 100) * trackWidth;
     const label = createSvgNode("text", {
-      x: point.x,
-      y: point.y,
+      x,
+      y: 84,
       "text-anchor": "middle",
-      "dominant-baseline": "middle",
       fill: "#808080",
       "font-family": "monospace",
-      "font-size": 11,
+      "font-size": 10,
     });
     label.textContent = String(tick);
     svg.appendChild(label);
   });
 
-  const needlePoint = gaugePoint(cx, cy, 114, snapshot.heat_score);
-  svg.appendChild(
-    createSvgNode("line", {
-      x1: cx,
-      y1: cy,
-      x2: needlePoint.x,
-      y2: needlePoint.y,
-      stroke: "#E5E5E5",
-      "stroke-width": 3,
-    })
-  );
-  svg.appendChild(createSvgNode("circle", { cx, cy, r: 8, fill: "#E5E5E5" }));
-
-  const heatValue = createSvgNode("text", {
-    x: cx,
-    y: 128,
-    "text-anchor": "middle",
-    fill: snapshot.zone.color,
-    "font-family": "monospace",
-    "font-size": 42,
-    "font-weight": "700",
-  });
-  heatValue.textContent = Math.round(snapshot.heat_score);
-  svg.appendChild(heatValue);
-
   const zoneLabel = createSvgNode("text", {
-    x: cx,
-    y: 158,
-    "text-anchor": "middle",
+    x: 12,
+    y: 122,
     fill: "#E5E5E5",
     "font-family": "monospace",
-    "font-size": 18,
+    "font-size": 28,
     "font-weight": "700",
   });
   zoneLabel.textContent = snapshot.zone.label.toUpperCase();
@@ -175,9 +209,8 @@ function renderGauge(snapshot) {
   const captionLines = splitGaugeCaption(snapshot.relative_sentence);
   captionLines.forEach((line, index) => {
     const caption = createSvgNode("text", {
-      x: cx,
-      y: 182 + index * 18,
-      "text-anchor": "middle",
+      x: 12,
+      y: 146 + index * 16,
       fill: "#808080",
       "font-family": "monospace",
       "font-size": 10,
@@ -187,9 +220,8 @@ function renderGauge(snapshot) {
   });
 
   const fairValue = createSvgNode("text", {
-    x: cx,
-    y: 224,
-    "text-anchor": "middle",
+    x: 12,
+    y: 184,
     fill: "#808080",
     "font-family": "monospace",
     "font-size": 10,
@@ -403,18 +435,12 @@ function renderScoreChart(payload) {
 
 function render(payload) {
   const snapshot = payload.snapshot;
-  dom.statusLine.innerHTML = `STATUS: <span style="color:${snapshot.zone.color}">${snapshot.zone.label.toUpperCase()}</span> | HEAT ${Math.round(snapshot.heat_score)}/100 | GAP ${formatGap(snapshot.gap_pct)}`;
+  dom.statusChip.textContent = snapshot.zone.label.toUpperCase();
+  dom.statusChip.style.color = snapshot.zone.color;
+  dom.statusText.textContent = `HEAT ${Math.round(snapshot.heat_score)}/100 | GAP ${formatGap(snapshot.gap_pct)} | ${snapshot.relative_sentence.toUpperCase()}`;
   dom.stamp.textContent = `UPDATED ${formatDate(snapshot.as_of)}`;
-  dom.lede.textContent = `${snapshot.zone.summary} ${snapshot.relative_sentence} ${snapshot.zone.detail}`;
-
-  setTableRows(dom.metricsBody, [
-    ["SPOT PRICE", formatDollar(snapshot.current_price), "Live BTC/USD when available."],
-    ["MODEL FAIR VALUE", formatDollar(snapshot.curve_price), "Power-curve value for the current date."],
-    ["POWER CURVE +1Y", formatDollar(snapshot.curve_price_1y), "Same model carried forward one calendar year."],
-    ["PREMIUM / DISCOUNT", formatGap(snapshot.gap_pct), "Distance from model fair value."],
-    ["YEARS AHEAD", snapshot.years_ahead_value.toFixed(2), "How far ahead of the curve price is trading."],
-    ["HEAT SCORE", `${Math.round(snapshot.heat_score)}/100`, "Historical percentile of BTC's deviation from the curve."],
-  ]);
+  dom.sourceLine.textContent = snapshot.source_note.toUpperCase();
+  renderKpis(snapshot);
 
   setTableRows(dom.detailBody, [
     ["SUMMARY", snapshot.zone.summary],
@@ -441,8 +467,9 @@ async function loadSnapshot(forceRefresh = false) {
     const payload = await response.json();
     render(payload);
   } catch (error) {
-    dom.statusLine.textContent = "STATUS: API ERROR";
-    dom.lede.textContent = "Failed to load the market snapshot from /api/snapshot.";
+    dom.statusChip.textContent = "API ERROR";
+    dom.statusChip.style.color = "#DC2626";
+    dom.statusText.textContent = "FAILED TO LOAD /API/SNAPSHOT";
     console.error(error);
   } finally {
     dom.refreshButton.disabled = false;

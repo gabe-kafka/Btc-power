@@ -43,6 +43,14 @@ function formatDate(iso) {
   });
 }
 
+function splitGaugeCaption(text) {
+  const parts = text.split(" of ");
+  if (parts.length === 2) {
+    return [`${parts[0]} of`, parts[1]];
+  }
+  return [text];
+}
+
 function setTableRows(tbody, rows) {
   tbody.innerHTML = rows
     .map(
@@ -154,7 +162,7 @@ function renderGauge(snapshot) {
 
   const zoneLabel = createSvgNode("text", {
     x: cx,
-    y: 160,
+    y: 158,
     "text-anchor": "middle",
     fill: "#E5E5E5",
     "font-family": "monospace",
@@ -164,24 +172,27 @@ function renderGauge(snapshot) {
   zoneLabel.textContent = snapshot.zone.label.toUpperCase();
   svg.appendChild(zoneLabel);
 
-  const caption = createSvgNode("text", {
-    x: cx,
-    y: 184,
-    "text-anchor": "middle",
-    fill: "#808080",
-    "font-family": "monospace",
-    "font-size": 12,
+  const captionLines = splitGaugeCaption(snapshot.relative_sentence);
+  captionLines.forEach((line, index) => {
+    const caption = createSvgNode("text", {
+      x: cx,
+      y: 182 + index * 18,
+      "text-anchor": "middle",
+      fill: "#808080",
+      "font-family": "monospace",
+      "font-size": 10,
+    });
+    caption.textContent = line;
+    svg.appendChild(caption);
   });
-  caption.textContent = snapshot.relative_sentence;
-  svg.appendChild(caption);
 
   const fairValue = createSvgNode("text", {
     x: cx,
-    y: 208,
+    y: 224,
     "text-anchor": "middle",
     fill: "#808080",
     "font-family": "monospace",
-    "font-size": 12,
+    "font-size": 10,
   });
   fairValue.textContent = `MODEL VALUE TODAY ${formatDollar(snapshot.curve_price)}`;
   svg.appendChild(fairValue);

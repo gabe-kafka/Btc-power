@@ -78,21 +78,33 @@ function arcPath(cx, cy, radius, startAngle, endAngle) {
   return `M ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArc} 0 ${end.x} ${end.y}`;
 }
 
+function gaugePoint(cx, cy, radius, score) {
+  const theta = Math.PI * (1 - score / 100);
+  return {
+    x: cx + radius * Math.cos(theta),
+    y: cy - radius * Math.sin(theta),
+  };
+}
+
+function gaugeArcPath(cx, cy, radius, startScore, endScore) {
+  const start = gaugePoint(cx, cy, radius, startScore);
+  const end = gaugePoint(cx, cy, radius, endScore);
+  return `M ${start.x} ${start.y} A ${radius} ${radius} 0 0 1 ${end.x} ${end.y}`;
+}
+
 function renderGauge(snapshot) {
   const svg = dom.gauge;
   svg.innerHTML = "";
   const width = 480;
   const height = 300;
   const cx = 240;
-  const cy = 244;
-  const radius = 148;
+  const cy = 250;
+  const radius = 156;
 
   zoneBands.forEach((band) => {
-    const start = 180 - band.end * 1.8;
-    const end = 180 - band.start * 1.8;
     svg.appendChild(
       createSvgNode("path", {
-        d: arcPath(cx, cy, radius, start, end),
+        d: gaugeArcPath(cx, cy, radius, band.start, band.end),
         stroke: band.color,
         "stroke-width": 30,
         fill: "none",
@@ -101,7 +113,7 @@ function renderGauge(snapshot) {
   });
 
   [0, 20, 40, 60, 80, 100].forEach((tick) => {
-    const point = polar(cx, cy, radius + 26, 180 - tick * 1.8);
+    const point = gaugePoint(cx, cy, radius + 28, tick);
     const label = createSvgNode("text", {
       x: point.x,
       y: point.y,
@@ -115,7 +127,7 @@ function renderGauge(snapshot) {
     svg.appendChild(label);
   });
 
-  const needlePoint = polar(cx, cy, 112, 180 - snapshot.heat_score * 1.8);
+  const needlePoint = gaugePoint(cx, cy, 114, snapshot.heat_score);
   svg.appendChild(
     createSvgNode("line", {
       x1: cx,

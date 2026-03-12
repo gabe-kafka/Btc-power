@@ -1,6 +1,6 @@
-# BTC Power Curve Temperature
+# BTC Power Curve Fear & Greed
 
-Vercel-ready Bitcoin market temperature site.
+Vercel-ready Bitcoin fear-and-greed site.
 
 The site does two things:
 
@@ -10,7 +10,7 @@ The site does two things:
 ## Model
 
 - `fair value` means the power-curve value for the current date
-- `heat score` is the percentile of Bitcoin's historical deviation from that curve
+- `fear & greed score` is the percentile of Bitcoin's historical deviation from that curve
 - `one year out` means following the same power curve forward by 365 days
 
 ## Deploy On Vercel

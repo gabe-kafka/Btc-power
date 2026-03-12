@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>BTC Power Curve Temperature</title>
+    <title>BTC Power Curve Fear & Greed</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
@@ -29,7 +29,7 @@
             <div class="kicker">GAUGE</div>
             <div class="mini-note">Threshold readout</div>
           </div>
-          <svg id="gauge" viewBox="0 0 640 210" aria-label="Heat score gauge"></svg>
+          <svg id="gauge" viewBox="0 0 640 210" aria-label="Fear and greed gauge"></svg>
         </section>
 
         <section class="sheet">
@@ -54,8 +54,8 @@
                 <td>Power-curve price for the current date. Not intrinsic value.</td>
               </tr>
               <tr>
-                <th>HEAT SCORE</th>
-                <td>Percentile of BTC's historical deviation from the curve. 0 is coldest, 100 is hottest.</td>
+                <th>FEAR &amp; GREED</th>
+                <td>Percentile of BTC's historical deviation from the curve. 0 is most fearful, 100 is most greedy.</td>
               </tr>
               <tr>
                 <th>ONE YEAR OUT</th>
@@ -82,9 +82,9 @@
         <section class="sheet">
           <div class="section-head">
             <div class="kicker">FIG-02</div>
-            <div class="mini-note">Historical market temperature</div>
+            <div class="mini-note">Historical fear and greed</div>
           </div>
-          <svg id="score-chart" viewBox="0 0 1200 320" aria-label="Historical heat score"></svg>
+          <svg id="score-chart" viewBox="0 0 1200 320" aria-label="Historical fear and greed score"></svg>
         </section>
       </section>
     </main>

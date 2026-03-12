@@ -17,32 +17,32 @@ CACHE_TTL_SECONDS = 900
 
 ZONE_META = [
     {
-        "label": "Freezing",
-        "summary": "BTC is trading in a cold, fear-heavy zone versus its long-run curve.",
+        "label": "Extreme Fear",
+        "summary": "BTC is trading in an extreme fear zone versus its long-run curve.",
         "detail": "Historically this has been a washed-out part of the cycle where price is subdued relative to trend.",
         "color": "#3B82F6",
     },
     {
-        "label": "Cold",
-        "summary": "BTC is below its usual cycle heat and still relatively calm.",
-        "detail": "This is cooler than average for Bitcoin history, but not a deep capitulation zone.",
+        "label": "Fear",
+        "summary": "BTC is below its usual cycle pressure and still leaning fearful.",
+        "detail": "This is weaker than average for Bitcoin history, but not a full capitulation zone.",
         "color": "#60A5FA",
     },
     {
-        "label": "Balanced",
-        "summary": "BTC is near the middle of its historical temperature range.",
-        "detail": "The market is neither especially hot nor especially cold relative to the power curve.",
+        "label": "Neutral",
+        "summary": "BTC is near the middle of its historical fear-and-greed range.",
+        "detail": "The market is neither especially fearful nor especially greedy relative to the power curve.",
         "color": "#A3A3A3",
     },
     {
-        "label": "Warm",
-        "summary": "BTC is trading above trend and sentiment is heating up.",
+        "label": "Greed",
+        "summary": "BTC is trading above trend and greed is building.",
         "detail": "This zone often appears when momentum is strong but the market is not yet at full euphoria.",
         "color": "#D97706",
     },
     {
-        "label": "Overheated",
-        "summary": "BTC is running very hot versus its historical power-curve position.",
+        "label": "Extreme Greed",
+        "summary": "BTC is in an extreme greed zone versus its historical power-curve position.",
         "detail": "This is where greed and speculative excess are most likely to dominate.",
         "color": "#DC2626",
     },
@@ -61,7 +61,7 @@ class Snapshot:
     gap_pct: float
     curve_multiple: float
     years_ahead_value: float
-    heat_score: float
+    fg_score: float
     zone: dict
     source_note: str
     relative_sentence: str
@@ -106,7 +106,7 @@ def fetch_current_price() -> float | None:
         return None
 
 
-def heat_score_from_distribution(sorted_years_ahead: np.ndarray, value: float) -> float:
+def fg_score_from_distribution(sorted_years_ahead: np.ndarray, value: float) -> float:
     percentile = np.searchsorted(sorted_years_ahead, value, side="right") / len(sorted_years_ahead)
     return float(np.clip(percentile * 100, 0, 100))
 
@@ -125,8 +125,15 @@ def zone_for_score(score: float) -> dict:
 
 def relative_sentence(score: float) -> str:
     if score >= 50:
-        return f"Hotter than {score:.0f}% of Bitcoin's daily history."
-    return f"Colder than {100 - score:.0f}% of Bitcoin's daily history."
+        return f"Greedier than {score:.0f}% of Bitcoin's daily history."
+    return f"More fearful than {100 - score:.0f}% of Bitcoin's daily history."
+
+
+def curve_position_sentence(years_offset: float) -> str:
+    magnitude = abs(years_offset)
+    if years_offset >= 0:
+        return f"{magnitude:.2f} years ahead of the curve."
+    return f"{magnitude:.2f} years behind the curve."
 
 
 def build_snapshot_payload(force: bool = False) -> dict:
@@ -151,17 +158,17 @@ def build_snapshot_payload(force: bool = False) -> dict:
     history_years_ahead = history_years_ahead[np.isfinite(history_years_ahead)]
     sorted_years_ahead = np.sort(history_years_ahead)
     history_scores = np.array(
-        [heat_score_from_distribution(sorted_years_ahead, value) for value in history_years_ahead],
+        [fg_score_from_distribution(sorted_years_ahead, value) for value in history_years_ahead],
         dtype=float,
     )
 
     curve_price = float(power_law_price(now))
     curve_price_1y = float(power_law_price(now + timedelta(days=365)))
     years_ahead_value = float(years_ahead(current_price, now))
-    heat_score = heat_score_from_distribution(sorted_years_ahead, years_ahead_value)
+    fg_score = fg_score_from_distribution(sorted_years_ahead, years_ahead_value)
     curve_multiple = current_price / curve_price
     gap_pct = (curve_multiple - 1) * 100
-    zone = zone_for_score(heat_score)
+    zone = zone_for_score(fg_score)
 
     snapshot = Snapshot(
         as_of=now,
@@ -171,10 +178,10 @@ def build_snapshot_payload(force: bool = False) -> dict:
         gap_pct=gap_pct,
         curve_multiple=curve_multiple,
         years_ahead_value=years_ahead_value,
-        heat_score=heat_score,
+        fg_score=fg_score,
         zone=zone,
         source_note=source_note,
-        relative_sentence=relative_sentence(heat_score),
+        relative_sentence=relative_sentence(fg_score),
     )
 
     history_dates = [date.strftime("%Y-%m-%d") for date in df["date"]]

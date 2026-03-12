@@ -72,8 +72,8 @@ function renderKpis(snapshot) {
     ["MODEL VALUE", formatDollar(snapshot.curve_price), "POWER CURVE NOW"],
     ["CURVE +1Y", formatDollar(snapshot.curve_price_1y), "365D FORWARD"],
     ["GAP", formatGap(snapshot.gap_pct), "VS MODEL"],
-    ["YEARS AHEAD", snapshot.years_ahead_value.toFixed(2), "CURVE OFFSET"],
-    ["HEAT", `${Math.round(snapshot.heat_score)}/100`, snapshot.zone.label.toUpperCase()],
+    ["CURVE OFFSET", snapshot.years_ahead_value.toFixed(2), "YEARS VS TREND"],
+    ["F&G", `${Math.round(snapshot.fg_score)}/100`, snapshot.zone.label.toUpperCase()],
   ];
 
   dom.kpiStrip.innerHTML = kpis
@@ -132,7 +132,7 @@ function renderGauge(snapshot) {
   const trackY = 54;
   const trackWidth = 420;
   const trackHeight = 12;
-  const markerX = trackX + (snapshot.heat_score / 100) * trackWidth;
+  const markerX = trackX + (snapshot.fg_score / 100) * trackWidth;
 
   const label = createSvgNode("text", {
     x: 12,
@@ -141,7 +141,7 @@ function renderGauge(snapshot) {
     "font-family": "monospace",
     "font-size": 10,
   });
-  label.textContent = "HEAT";
+  label.textContent = "FEAR & GREED";
   svg.appendChild(label);
 
   const value = createSvgNode("text", {
@@ -153,7 +153,7 @@ function renderGauge(snapshot) {
     "font-size": 18,
     "font-weight": "700",
   });
-  value.textContent = `${Math.round(snapshot.heat_score)}/100`;
+  value.textContent = `${Math.round(snapshot.fg_score)}/100`;
   svg.appendChild(value);
 
   zoneBands.forEach((band) => {
@@ -416,7 +416,7 @@ function renderScoreChart(payload) {
   svg.appendChild(
     createSvgNode("circle", {
       cx: xMap(currentX),
-      cy: yMap(payload.snapshot.heat_score),
+      cy: yMap(payload.snapshot.fg_score),
       r: 5,
       fill: payload.snapshot.zone.color,
     })
@@ -429,7 +429,7 @@ function renderScoreChart(payload) {
     "font-family": "monospace",
     "font-size": 12,
   });
-  title.textContent = "HISTORICAL HEAT SCORE";
+  title.textContent = "HISTORICAL FEAR & GREED";
   svg.appendChild(title);
 }
 
@@ -437,14 +437,17 @@ function render(payload) {
   const snapshot = payload.snapshot;
   dom.statusChip.textContent = snapshot.zone.label.toUpperCase();
   dom.statusChip.style.color = snapshot.zone.color;
-  dom.statusText.textContent = `HEAT ${Math.round(snapshot.heat_score)}/100 | GAP ${formatGap(snapshot.gap_pct)} | ${snapshot.relative_sentence.toUpperCase()}`;
+  dom.statusText.textContent = `F&G ${Math.round(snapshot.fg_score)}/100 | GAP ${formatGap(snapshot.gap_pct)} | ${snapshot.relative_sentence.toUpperCase()}`;
   dom.stamp.textContent = `UPDATED ${formatDate(snapshot.as_of)}`;
   dom.sourceLine.textContent = snapshot.source_note.toUpperCase();
   renderKpis(snapshot);
 
   setTableRows(dom.detailBody, [
     ["SUMMARY", snapshot.zone.summary],
-    ["HISTORICAL POSITION", `${snapshot.relative_sentence} ${snapshot.years_ahead_value.toFixed(2)} years ahead of the curve.`],
+    [
+      "HISTORICAL POSITION",
+      `${snapshot.relative_sentence} ${snapshot.years_ahead_value >= 0 ? snapshot.years_ahead_value.toFixed(2) + " years ahead of the curve." : Math.abs(snapshot.years_ahead_value).toFixed(2) + " years behind the curve."}`,
+    ],
     ["FAIR VALUE ASSUMPTION", `The model treats the power-curve price as fair value: ${formatDollar(snapshot.curve_price)} today and ${formatDollar(snapshot.curve_price_1y)} one year out.`],
     ["DATA SOURCE", snapshot.source_note],
   ]);

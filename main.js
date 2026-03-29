@@ -6,6 +6,10 @@ const zoneBands = [
   { start: 80, end: 100, color: "#DC2626" },
 ];
 
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 const dom = {
   statusChip: document.getElementById("status-chip"),
   statusText: document.getElementById("status-text"),
@@ -137,7 +141,7 @@ function renderGauge(snapshot) {
   const label = createSvgNode("text", {
     x: 12,
     y: 58,
-    fill: "#808080",
+    fill: cssVar("--muted"),
     "font-family": "monospace",
     "font-size": 10,
   });
@@ -176,7 +180,7 @@ function renderGauge(snapshot) {
       y1: trackY - 6,
       x2: markerX,
       y2: trackY + trackHeight + 6,
-      stroke: "#E5E5E5",
+      stroke: cssVar("--line"),
       "stroke-width": 2,
     })
   );
@@ -187,7 +191,7 @@ function renderGauge(snapshot) {
       x,
       y: 84,
       "text-anchor": "middle",
-      fill: "#808080",
+      fill: cssVar("--muted"),
       "font-family": "monospace",
       "font-size": 10,
     });
@@ -198,7 +202,7 @@ function renderGauge(snapshot) {
   const zoneLabel = createSvgNode("text", {
     x: 12,
     y: 122,
-    fill: "#E5E5E5",
+    fill: cssVar("--text"),
     "font-family": "monospace",
     "font-size": 28,
     "font-weight": "700",
@@ -211,7 +215,7 @@ function renderGauge(snapshot) {
     const caption = createSvgNode("text", {
       x: 12,
       y: 146 + index * 16,
-      fill: "#808080",
+      fill: cssVar("--muted"),
       "font-family": "monospace",
       "font-size": 10,
     });
@@ -222,7 +226,7 @@ function renderGauge(snapshot) {
   const fairValue = createSvgNode("text", {
     x: 12,
     y: 184,
-    fill: "#808080",
+    fill: cssVar("--muted"),
     "font-family": "monospace",
     "font-size": 10,
   });
@@ -272,12 +276,12 @@ function renderPriceChart(payload) {
     .filter((tick) => tick <= maxY)
     .forEach((tick) => {
       const y = yMap(tick);
-      svg.appendChild(createSvgNode("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, stroke: "#2A2A2A" }));
+      svg.appendChild(createSvgNode("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, stroke: cssVar("--grid") }));
       const label = createSvgNode("text", {
         x: margin.left - 12,
         y: y + 4,
         "text-anchor": "end",
-        fill: "#808080",
+        fill: cssVar("--muted"),
         "font-family": "monospace",
         "font-size": 11,
       });
@@ -287,12 +291,12 @@ function renderPriceChart(payload) {
 
   years.forEach((year) => {
     const x = xMap(Date.UTC(year, 0, 1));
-    svg.appendChild(createSvgNode("line", { x1: x, y1: margin.top, x2: x, y2: height - margin.bottom, stroke: "#2A2A2A" }));
+    svg.appendChild(createSvgNode("line", { x1: x, y1: margin.top, x2: x, y2: height - margin.bottom, stroke: cssVar("--grid") }));
     const label = createSvgNode("text", {
       x,
       y: height - 16,
       "text-anchor": "middle",
-      fill: "#808080",
+      fill: cssVar("--muted"),
       "font-family": "monospace",
       "font-size": 11,
     });
@@ -304,7 +308,7 @@ function renderPriceChart(payload) {
     createSvgNode("polyline", {
       points: polylinePoints(curveDates, curvePrices, xMap, yMap),
       fill: "none",
-      stroke: "#3B82F6",
+      stroke: cssVar("--curve"),
       "stroke-width": 2,
       "stroke-dasharray": "4 4",
     })
@@ -314,7 +318,7 @@ function renderPriceChart(payload) {
     createSvgNode("polyline", {
       points: polylinePoints(historyDates, historyPrices, xMap, yMap),
       fill: "none",
-      stroke: "#E5E5E5",
+      stroke: cssVar("--line"),
       "stroke-width": 1.6,
     })
   );
@@ -331,7 +335,7 @@ function renderPriceChart(payload) {
   const title = createSvgNode("text", {
     x: margin.left,
     y: 16,
-    fill: "#E5E5E5",
+    fill: cssVar("--text"),
     "font-family": "monospace",
     "font-size": 12,
   });
@@ -372,12 +376,12 @@ function renderScoreChart(payload) {
 
   [0, 20, 40, 60, 80, 100].forEach((tick) => {
     const y = yMap(tick);
-    svg.appendChild(createSvgNode("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, stroke: "#2A2A2A" }));
+    svg.appendChild(createSvgNode("line", { x1: margin.left, y1: y, x2: width - margin.right, y2: y, stroke: cssVar("--grid") }));
     const label = createSvgNode("text", {
       x: margin.left - 12,
       y: y + 4,
       "text-anchor": "end",
-      fill: "#808080",
+      fill: cssVar("--muted"),
       "font-family": "monospace",
       "font-size": 11,
     });
@@ -391,12 +395,12 @@ function renderScoreChart(payload) {
   for (let year = startYear; year <= endYear; year += 2) years.push(year);
   years.forEach((year) => {
     const x = xMap(Date.UTC(year, 0, 1));
-    svg.appendChild(createSvgNode("line", { x1: x, y1: margin.top, x2: x, y2: height - margin.bottom, stroke: "#2A2A2A" }));
+    svg.appendChild(createSvgNode("line", { x1: x, y1: margin.top, x2: x, y2: height - margin.bottom, stroke: cssVar("--grid") }));
     const label = createSvgNode("text", {
       x,
       y: height - 16,
       "text-anchor": "middle",
-      fill: "#808080",
+      fill: cssVar("--muted"),
       "font-family": "monospace",
       "font-size": 11,
     });
@@ -408,7 +412,7 @@ function renderScoreChart(payload) {
     createSvgNode("polyline", {
       points: polylinePoints(historyDates, historyScores, xMap, yMap),
       fill: "none",
-      stroke: "#E5E5E5",
+      stroke: cssVar("--line"),
       "stroke-width": 1.6,
     })
   );
@@ -425,7 +429,7 @@ function renderScoreChart(payload) {
   const title = createSvgNode("text", {
     x: margin.left,
     y: 16,
-    fill: "#E5E5E5",
+    fill: cssVar("--text"),
     "font-family": "monospace",
     "font-size": 12,
   });
@@ -471,7 +475,7 @@ async function loadSnapshot(forceRefresh = false) {
     render(payload);
   } catch (error) {
     dom.statusChip.textContent = "API ERROR";
-    dom.statusChip.style.color = "#DC2626";
+    dom.statusChip.style.color = cssVar("--red");
     dom.statusText.textContent = "FAILED TO LOAD /API/SNAPSHOT";
     console.error(error);
   } finally {

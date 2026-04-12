@@ -151,11 +151,13 @@ def build_snapshot_payload(force: bool = False) -> dict:
         now = pd.Timestamp(df.iloc[-1]["date"]).to_pydatetime()
         source_note = "Bundled historical CSV only (live spot unavailable)"
 
-    history_years_ahead = np.array(
+    history_years_ahead_raw = np.array(
         [years_ahead(float(price), date.to_pydatetime()) for price, date in zip(df["price"], df["date"])],
         dtype=float,
     )
-    history_years_ahead = history_years_ahead[np.isfinite(history_years_ahead)]
+    finite_mask = np.isfinite(history_years_ahead_raw)
+    df_valid = df[finite_mask].reset_index(drop=True)
+    history_years_ahead = history_years_ahead_raw[finite_mask]
     sorted_years_ahead = np.sort(history_years_ahead)
     history_scores = np.array(
         [fg_score_from_distribution(sorted_years_ahead, value) for value in history_years_ahead],
@@ -184,8 +186,8 @@ def build_snapshot_payload(force: bool = False) -> dict:
         relative_sentence=relative_sentence(fg_score),
     )
 
-    history_dates = [date.strftime("%Y-%m-%d") for date in df["date"]]
-    history_prices = [float(value) for value in df["price"]]
+    history_dates = [date.strftime("%Y-%m-%d") for date in df_valid["date"]]
+    history_prices = [float(value) for value in df_valid["price"]]
     history_scores_list = [float(value) for value in history_scores]
     curve_dates = pd.date_range("2010-01-01", now + timedelta(days=365), freq="7D")
     curve_series = {

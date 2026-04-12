@@ -3,7 +3,7 @@
   "trailingSlash": false,
   "functions": {
     "api/*.py": {
-      "includeFiles": "btc_historical.csv",
+      "includeFiles": "{btc_historical.csv,powercurve_core.py}",
       "maxDuration": 10
     }
   }
